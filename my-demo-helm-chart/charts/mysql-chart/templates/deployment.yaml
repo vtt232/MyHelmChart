@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mysql-chart.fullname" . }}
+  labels:
+    {{- include "mysql-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "mysql-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mysql-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - "mysqladmin"
+                - "ping"
+            initialDelaySeconds: 30
+            periodSeconds: 30
+
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: MYSQL_ROOT_PASSWORD
+
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+
+      volumes:
+          - name: init-scripts
+            configMap:
+              name: mysql-initdb-config
+          - name: mysql-storage
+            persistentVolumeClaim:
+              claimName: mysql-pvc
+

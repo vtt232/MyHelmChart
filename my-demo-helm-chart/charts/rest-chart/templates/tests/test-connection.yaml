@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "rest-chart.fullname" . }}-test-connection"
+  labels:
+    {{- include "rest-chart.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: test
+      image:  "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+      command: [ "/bin/sh" ]
+      args:
+          - "-c"
+          - |
+            echo "Waiting for the Spring Boot app to start..."
+            until curl -s http://rest-service:8080/api/access/status; do
+              sleep 5
+              echo "Retrying..."
+            done
+            echo "Spring Boot app is running!"
+            
+            echo "Sending a request to the API through the virtual service..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://rest-service:8080/api/access/status)
+            if [ "$response" -eq "200" ]; then
+              echo "API test passed! HTTP Status Code: $response"
+            else
+              echo "API test failed! HTTP Status Code: $response"
+              exit 1
+            fi
+  restartPolicy: Never
+

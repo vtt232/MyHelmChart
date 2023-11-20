@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rest-chart.fullname" . }}
+  labels:
+    {{- include "rest-chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: TCP
+  selector:
+    {{- include "rest-chart.selectorLabels" . | nindent 4 }}
