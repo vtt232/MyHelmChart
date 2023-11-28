@@ -34,19 +34,19 @@ ingress:
 apps:
   - name: /oauth2/
     port: 8080
-    deployment: rest-service
+    deployment: rest-multiple-db-service
   - name: /login/oauth2/
     port: 8080
-    deployment: rest-service
+    deployment: rest-multiple-db-service
   - name: /api/
     port: 8080
-    deployment: rest-service
+    deployment: rest-multiple-db-service
   - name: /logout
     port: 8080
-    deployment: rest-service
+    deployment: rest-multiple-db-service
   - name: /login
     port: 8080
-    deployment: rest-service
+    deployment: rest-multiple-db-service
   - name: /ws/
     port: 8080
     deployment: websocket-service

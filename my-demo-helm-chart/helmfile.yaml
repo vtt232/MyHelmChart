@@ -1,28 +1,34 @@
+environments:
+  default:
+  single:
+    values:
+      - restDB: ./charts/rest-chart
+  multiple:
+    values:
+      - restDB: ./charts/rest-multiple-db-chart
+---
 releases:
-  - name: mysql-chart-release
-    chart: ./charts/mysql-chart
+  - name: istio-chart-release
+    chart: ./charts/istio-chart
     namespace: default
-    installed: false
+    installed: true
 
   - name: react-chart-release
     chart: ./charts/react-chart
     namespace: default
-    installed: false
+    installed: true
 
 
-  - name: rest-chart-release
-    chart: ./charts/rest-chart
+  - name: rest-db-chart-release
+    chart: {{ .Values.restDB }}
     namespace: default
-    installed: false
+    installed: true
 
 
   - name: websocket-chart-release
     chart: ./charts/websocket-chart
     namespace: default
-    installed: false
+    installed: true
 
 
-  - name: istio-chart-release
-    chart: ./charts/istio-chart
-    namespace: default
-    installed: false
+
