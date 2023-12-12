@@ -8,7 +8,7 @@ image:
   repository: thinh23/websocket
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "first"
+  tag: "connect"
 
 imagePullSecrets: []
 nameOverride: ""

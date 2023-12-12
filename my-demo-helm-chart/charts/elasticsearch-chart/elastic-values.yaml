@@ -1,0 +1,10 @@
+data.persistence.size: 10Mi
+master:
+  masterOnly: false
+  replicaCount: 1
+data:
+  replicaCount: 0
+coordinating:
+  replicaCount: 0
+ingest:
+  replicaCount: 0
