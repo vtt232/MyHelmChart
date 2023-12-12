@@ -1,0 +1,10 @@
+initdbScripts:
+  initdb.js: |
+    use mydb
+    db.createUser(
+      {
+        user: "user",
+        pwd: "2322000@Vtt",
+        roles: [ { role: "dbOwner", db: "mydb" } ]
+      }
+    )

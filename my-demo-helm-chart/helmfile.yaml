@@ -10,24 +10,24 @@ environments:
 releases:
   - name: istio-chart-release
     chart: ./charts/istio-chart
-    namespace: default
+    namespace: myapp
     installed: true
 
   - name: react-chart-release
     chart: ./charts/react-chart
-    namespace: default
+    namespace: myapp
     installed: true
 
 
   - name: rest-db-chart-release
     chart: {{ .Values.restDB }}
-    namespace: default
+    namespace: myapp
     installed: true
 
 
   - name: websocket-chart-release
     chart: ./charts/websocket-chart
-    namespace: default
+    namespace: myapp
     installed: true
 
 
