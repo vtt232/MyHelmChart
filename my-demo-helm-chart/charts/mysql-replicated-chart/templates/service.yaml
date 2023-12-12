@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mysql-replicated-chart.fullname" . }}
+  labels:
+    {{- include "mysql-replicated-chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: TCP
+  clusterIP: None
+  selector:
+    {{- include "mysql-replicated-chart.selectorLabels" . | nindent 4 }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mysql-replicated-chart.fullname" . }}-read
+  labels:
+    {{- include "mysql-replicated-chart.labelsReplicate" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: TCP
+  selector:
+    {{- include "mysql-replicated-chart.selectorLabels" . | nindent 4 }}

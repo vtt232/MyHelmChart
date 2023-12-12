@@ -1,0 +1,105 @@
+image:
+  debug: true
+controller:
+  replicaCount: 1
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Equal"
+    value: ""
+    effect: "NoSchedule"
+kraft:
+  enabled: true
+zookeeper:
+  enabled: false
+  replicaCount: 1
+listeners:
+  client:
+    protocol: PLAINTEXT
+extraConfig: |
+  offsets.topic.replication.factor=1
+  transaction.state.log.replication.factor=1
+## Extra objects to deploy (value evaluated as a template)
+##
+extraDeploy:
+  - |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: {{ include "common.names.fullname" . }}-connect
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+        app.kubernetes.io/component: connector
+    spec:
+      replicas: 1
+      selector:
+        matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
+          app.kubernetes.io/component: connector
+      template:
+        metadata:
+          labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 8 }}
+            app.kubernetes.io/component: connector
+        spec:
+          containers:
+            - name: connect
+              image: kafka-connect:mongo
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  /opt/bitnami/kafka/bin/connect-standalone.sh /config/connect-standalone.properties /config/mongodb.properties
+              ports:
+                - name: connector
+                  containerPort: 8083
+              volumeMounts:
+                - name: configuration
+                  mountPath: /config
+          volumes:
+            - name: configuration
+              configMap:
+                name: {{ include "common.names.fullname" . }}-connect
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ include "common.names.fullname" . }}-connect
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+        app.kubernetes.io/component: connector
+    data:
+      connect-standalone.properties: |-
+        bootstrap.servers = kafka-service.myapp.svc.cluster.local:9092
+        key.converter=org.apache.kafka.connect.storage.StringConverter
+        value.converter=org.apache.kafka.connect.json.JsonConverter
+        key.converter.schemas.enable=true
+        value.converter.schemas.enable=true
+        offset.storage.file.filename=/tmp/connect.offsets
+        offset.flush.interval.ms=10000
+        plugin.path=/opt/bitnami/kafka/plugins
+        sasl.mechanism=PLAIN
+        security.protocol=PLAINTEXT
+      mongodb.properties: |-
+        connection.uri=mongodb://user:2322000%40Vtt@mongodb.myapp.svc.cluster.local:27017/mydb
+        name=mongo-sink
+        topics=admin
+        connector.class=com.mongodb.kafka.connect.MongoSinkConnector
+        tasks.max=1
+        key.converter=org.apache.kafka.connect.storage.StringConverter
+        value.converter=org.apache.kafka.connect.json.JsonConverter
+        key.converter.schemas.enable=false
+        value.converter.schemas.enable=false
+        database=mydb
+        collection=sink
+
+  - |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ include "common.names.fullname" . }}-connect
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+        app.kubernetes.io/component: connector
+    spec:
+      ports:
+        - protocol: TCP
+          port: 8083
+          targetPort: connector
+      selector: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+        app.kubernetes.io/component: connector

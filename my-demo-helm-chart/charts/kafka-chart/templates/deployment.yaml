@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "kafka-chart.fullname" . }}
+  labels:
+    {{- include "kafka-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kafka-chart.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "kafka-chart.fullname" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "kafka-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes:
+        - name: kafka-storage
+          persistentVolumeClaim:
+            claimName: kafka-pv-claim
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: REPLICAS
+              value: '3'
+            - name: SERVICE
+              value: kafka-svc
+            - name: NAMESPACE
+              value: kafka-kraft
+            - name: SHARE_DIR
+              value: /mnt/kafka
+          volumeMounts:
+            - name: kafka-storage
+              mountPath: /mnt/kafka
+          kraft:
+            enabled: true
+

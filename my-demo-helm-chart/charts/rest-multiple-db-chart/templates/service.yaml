@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rest-multiple-db-chart.fullname" . }}
+  labels:
+    {{- include "rest-multiple-db-chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: TCP
+  selector:
+    {{- include "rest-multiple-db-chart.selectorLabels" . | nindent 4 }}
